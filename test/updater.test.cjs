@@ -7,11 +7,11 @@ const os = require('node:os');
 const { compareVersions, createUpdater, latestRelease, downloadAsset,
   installDeb, installImage, packageKind } = require('../src/updater.cjs');
 
-const repo = 'https://github.com/kelvinmattosdev/dns-console';
+const repo = 'https://github.com/kelvinmattosdev/cloudflare-desktop-manager';
 const tag = 'v1.10.2';
 const body = Buffer.from('demo update');
 const sha256 = createHash('sha256').update(body).digest('hex');
-const name = 'dns-console_1.10.2_amd64.deb';
+const name = 'nimbodesk_1.10.2_amd64.deb';
 const asset = { name, size: body.length, sha256, url: `${repo}/releases/download/${tag}/${name}` };
 const release = { version: '1.10.2', asset };
 const metadata = { draft: false, prerelease: false, tag_name: tag, assets: [
@@ -33,14 +33,14 @@ test('only stable version numbers are supported, major/minor/patch compared nume
 
 test('latest release uses only the fixed repo and package format with required SHA-256 metadata', async () => {
   const lookup = (kind, data) => latestRelease(kind, async (url, options) => {
-    assert.equal(url, 'https://api.github.com/repos/kelvinmattosdev/dns-console/releases/latest');
+    assert.equal(url, 'https://api.github.com/repos/kelvinmattosdev/cloudflare-desktop-manager/releases/latest');
     assert.equal(options.redirect, 'error');
     assert.equal(options.headers.Authorization, undefined);
     return Response.json(data);
   });
   assert.deepEqual(await lookup('deb', metadata), release);
   assert.equal((await lookup('image', metadata)).asset, null);
-  const imageName = 'dns-console_1.10.2_amd64.AppImage';
+  const imageName = 'nimbodesk_1.10.2_amd64.AppImage';
   const imageUrl = `${repo}/releases/download/${tag}/${imageName}`;
   assert.equal((await lookup('image', { ...metadata,
     assets: [{ ...metadata.assets[0], name: imageName, browser_download_url: imageUrl }] })).asset.url, imageUrl);

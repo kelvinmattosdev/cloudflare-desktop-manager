@@ -1,22 +1,22 @@
-# DNS Console
+# NimboDesk
 
-Aplicativo desktop não oficial, em português, exclusivamente para registros DNS da Cloudflare.
+NimboDesk: gerenciador desktop para Cloudflare no Linux. Gerencie registros DNS de todos os domínios autorizados pelo seu API Token. Aplicativo não oficial, em português.
 
 ## Instalar no Zorin OS / Ubuntu (64 bits)
 
-Baixe o `.deb` na página de [Releases](https://github.com/kelvinmattosdev/dns-console/releases/latest). Abra-o pelo instalador gráfico ou, a partir da pasta onde baixou o arquivo, execute:
+Baixe o `.deb` na página de [Releases](https://github.com/kelvinmattosdev/cloudflare-desktop-manager/releases/latest). Abra-o pelo instalador gráfico ou, a partir da pasta onde baixou o arquivo, execute:
 
 ```sh
-sudo apt install ./dns-console_1.0.0_amd64.deb
+sudo apt install ./nimbodesk_1.0.0_amd64.deb
 ```
 
-Depois, procure **DNS Console** no menu de aplicativos.
+Depois, procure **NimboDesk** no menu de aplicativos.
 
-Como alternativa ao `.deb`, baixe o **AppImage** da mesma release, marque-o como executável (`chmod +x dns-console_1.0.0_amd64.AppImage`) e abra-o numa pasta do seu usuário. O AppImage é portátil e não instala um atalho automaticamente.
+Como alternativa ao `.deb`, baixe o **AppImage** da mesma release, marque-o como executável (`chmod +x nimbodesk_1.0.0_amd64.AppImage`) e abra-o numa pasta do seu usuário. O AppImage é portátil e não instala um atalho automaticamente.
 
 ## Atualizações
 
-Ao abrir o `.deb` instalado ou o AppImage, o DNS Console consulta a última [release estável no GitHub](https://github.com/kelvinmattosdev/dns-console/releases). O topo mostra **Atualizado vX.Y.Z** ou **Atualizar para vX.Y.Z**. O ícone ao lado permite **Checar atualizações** novamente. A pesquisa não usa nem envia o token da Cloudflare ao GitHub.
+Ao abrir o `.deb` instalado ou o AppImage, o NimboDesk consulta a última [release estável no GitHub](https://github.com/kelvinmattosdev/cloudflare-desktop-manager/releases). O topo mostra **Atualizado vX.Y.Z** ou **Atualizar para vX.Y.Z**. O ícone ao lado permite **Checar atualizações** novamente. A pesquisa não usa nem envia o token da Cloudflare ao GitHub.
 
 O download só começa ao clicar em **Atualizar**. O app confere o tamanho e o SHA-256 divulgado pelo GitHub. Se a instalação for bem-sucedida, o app reabre na nova versão. Na instalação via `.deb`, o Zorin pede autorização de administrador. O AppImage pode ser substituído sem `sudo` quando está em uma pasta sua.
 
@@ -48,7 +48,7 @@ O teste desktop usa a sessão de demonstração em um perfil temporário e reque
 
 1. Para uma nova versão, atualize `package.json` e `package-lock.json` juntos (por exemplo, `npm version patch --no-git-tag-version`).
 2. Rode os testes e `npm run package`. Esse comando gera os instaladores localmente e não publica nada.
-3. Quando for publicar, use a tag `vX.Y.Z` no commit correspondente, marque a release pública como estável e mais recente e anexe `dns-console_X.Y.Z_amd64.deb` e `dns-console_X.Y.Z_amd64.AppImage` sem renomeá-los.
+3. Quando for publicar, use a tag `vX.Y.Z` no commit correspondente, marque a release pública como estável e mais recente e anexe `nimbodesk_X.Y.Z_amd64.deb` e `nimbodesk_X.Y.Z_amd64.AppImage` sem renomeá-los.
 4. Confirme que ambos os anexos aparecem em `GET /releases/latest` com o digest SHA-256. O atualizador usa esses dados para reconhecer e verificar o download.
 
 Referências oficiais: [API Tokens](https://developers.cloudflare.com/fundamentals/api/get-started/create-token/), [List Zones](https://developers.cloudflare.com/api/resources/zones/methods/list/), [DNS Records](https://developers.cloudflare.com/api/resources/dns/subresources/records/).

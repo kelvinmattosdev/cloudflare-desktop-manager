@@ -48,6 +48,7 @@ app.whenReady().then(async () => {
   }
   await wait('window.dns && !document.getElementById("login").hidden');
   assert.equal(await run('typeof require'), 'undefined');
+  assert.equal(await run('document.title'), 'NimboDesk');
   await wait('document.getElementById("update-label").textContent.startsWith("Atualizado v")');
   await run('document.getElementById("check-update").click()');
   await wait('!document.getElementById("install-update").hidden');

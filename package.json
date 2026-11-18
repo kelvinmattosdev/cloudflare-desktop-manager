@@ -4,10 +4,10 @@
   "desktopName": "dns-console.desktop",
   "version": "1.0.0",
   "private": true,
-  "description": "Gerenciador desktop de registros DNS para Cloudflare",
+  "description": "NimboDesk: gerenciador desktop para Cloudflare no Linux. Gerencie registros DNS de todos os domínios autorizados pelo seu API Token.",
   "author": { "name": "Kelvin Mattos", "email": "125149013+kelvinmattosdev@users.noreply.github.com" },
-  "homepage": "https://github.com/kelvinmattosdev/dns-console",
-  "repository": { "type": "git", "url": "https://github.com/kelvinmattosdev/dns-console.git" },
+  "homepage": "https://github.com/kelvinmattosdev/cloudflare-desktop-manager",
+  "repository": { "type": "git", "url": "https://github.com/kelvinmattosdev/cloudflare-desktop-manager.git" },
   "engines": { "node": ">=22" },
   "main": "src/main.cjs",
   "scripts": {
@@ -25,9 +25,12 @@
   },
   "build": {
     "appId": "local.dnsconsole.desktop",
-    "artifactName": "dns-console_${version}_${arch}.${ext}",
+    "artifactName": "nimbodesk_${version}_${arch}.${ext}",
     "files": ["src/**/*"],
-    "linux": { "category": "Network", "icon": "src/icon.svg", "syncDesktopName": true },
-    "appImage": { "artifactName": "dns-console_${version}_amd64.AppImage" }
+    "linux": {
+      "category": "Network", "icon": "src/icon.svg", "syncDesktopName": true,
+      "desktop": { "entry": { "Name": "NimboDesk" } }
+    },
+    "appImage": { "artifactName": "nimbodesk_${version}_amd64.AppImage" }
   }
 }

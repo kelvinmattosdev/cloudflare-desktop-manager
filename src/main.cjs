@@ -95,7 +95,7 @@ else {
       }
     });
     win = new BrowserWindow({
-      title: 'DNS Console', width: 1280, height: 850, minWidth: 780, minHeight: 590,
+      title: 'NimboDesk', width: 1280, height: 850, minWidth: 780, minHeight: 590,
       backgroundColor: '#ffffff', show: false, autoHideMenuBar: true, icon: path.join(__dirname, 'icon.svg'),
       webPreferences: { preload: path.join(__dirname, 'preload.cjs'),
         sandbox: true, contextIsolation: true, nodeIntegration: false, devTools: !app.isPackaged }

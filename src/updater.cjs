@@ -9,7 +9,7 @@ const { execFile } = require('node:child_process');
 const { promisify } = require('node:util');
 
 const runFile = promisify(execFile);
-const repository = 'kelvinmattosdev/dns-console';
+const repository = 'kelvinmattosdev/cloudflare-desktop-manager';
 const releases = `https://api.github.com/repos/${repository}/releases/latest`;
 const assets = `https://github.com/${repository}/releases/download/`;
 const redirectHosts = new Set(['release-assets.githubusercontent.com', 'objects.githubusercontent.com']);
@@ -44,7 +44,7 @@ async function latestRelease(kind, fetcher = fetch) {
       redirect: 'error',
       signal: AbortSignal.timeout(12_000),
       headers: { Accept: 'application/vnd.github+json', 'Cache-Control': 'no-cache',
-        'User-Agent': 'DNS-Console-Desktop' }
+        'User-Agent': 'NimboDesk' }
     });
   } catch {
     throw new Error('Não foi possível conectar ao GitHub. Confira a conexão e tente checar novamente.');
@@ -59,7 +59,7 @@ async function latestRelease(kind, fetcher = fetch) {
     throw new Error('O GitHub não retornou uma versão estável válida.');
   }
   const version = parseVersion(release.tag_name);
-  const name = `dns-console_${version}_amd64${extensions[kind]}`;
+  const name = `nimbodesk_${version}_amd64${extensions[kind]}`;
   const url = `${assets}${release.tag_name}/${name}`;
   const entry = Array.isArray(release.assets) ? release.assets.find(file => file?.name === name) : null;
   const sha256 = typeof entry?.digest === 'string' ? entry.digest.match(/^sha256:([a-f0-9]{64})$/i)?.[1].toLowerCase() : null;
@@ -114,7 +114,7 @@ async function installDeb(file, version, run = runFile) {
     ], { timeout: 10_000 });
     if (stdout.trim() !== `dns-console\n${version}\namd64`) throw new Error('Pacote incompatível.');
   } catch {
-    throw new Error('O pacote baixado não é um instalador válido desta versão do DNS Console.');
+    throw new Error('O pacote baixado não é um instalador válido desta versão do NimboDesk.');
   }
   try {
     await run('/usr/bin/pkexec', ['/usr/bin/apt-get', 'install', '--yes', '--no-install-recommends', file]);
@@ -212,7 +212,7 @@ function createUpdater({ currentVersion, kind, image, emit, restart,
       }
       set('restarting', { latest, admin });
       try { restart(imagePath); }
-      catch { set('installed', { latest, message: 'Atualização instalada. Feche e abra o DNS Console para usar a nova versão.' }); }
+      catch { set('installed', { latest, message: 'Atualização instalada. Feche e abra o NimboDesk para usar a nova versão.' }); }
       return state;
     }
   };
