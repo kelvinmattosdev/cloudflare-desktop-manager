@@ -11,9 +11,11 @@ Baixe o arquivo do seu sistema na página de [releases](https://github.com/kelvi
 | Sistema | Arquivo | Como abrir |
 | --- | --- | --- |
 | Windows 64 bits | `.exe` | Rode o instalador e procure NimboDesk no menu Iniciar. |
-| macOS, Intel e Apple Silicon | `.dmg` | Abra a imagem e arraste NimboDesk para Aplicativos. |
+| macOS, Intel e Apple Silicon | `.dmg` (não testado) | Abra a imagem e arraste NimboDesk para Aplicativos. |
 | Linux 64 bits, Zorin OS ou Ubuntu | `.deb` | Abra pelo instalador gráfico ou use o comando abaixo. |
 | Linux 64 bits, versão portátil | `.AppImage` | Marque o arquivo como executável e abra. Ele não cria atalho no menu. |
+
+O instalador para macOS ainda precisa ser gerado em um Mac ou runner macOS. Tanto a instalação quanto a atualização pelo app ficam marcadas como não testadas até a validação em um Mac.
 
 Para instalar o `.deb` pelo terminal, vá até a pasta onde salvou o arquivo:
 
