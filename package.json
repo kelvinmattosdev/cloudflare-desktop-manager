@@ -4,7 +4,7 @@
   "desktopName": "dns-console.desktop",
   "version": "1.0.0",
   "private": true,
-  "description": "NimboDesk: gerenciador desktop para Cloudflare no Linux. Gerencie registros DNS de todos os domínios autorizados pelo seu API Token.",
+  "description": "NimboDesk: gerencie o DNS da Cloudflare no Windows, macOS e Linux.",
   "author": { "name": "Kelvin Mattos", "email": "125149013+kelvinmattosdev@users.noreply.github.com" },
   "homepage": "https://github.com/kelvinmattosdev/cloudflare-desktop-manager",
   "repository": { "type": "git", "url": "https://github.com/kelvinmattosdev/cloudflare-desktop-manager.git" },
@@ -14,7 +14,14 @@
     "start": "electron .",
     "test": "node --test test/*.test.cjs",
     "test:desktop": "electron test/desktop.cjs",
-    "package": "electron-builder --linux deb AppImage --x64 --publish never"
+    "package": "npm run package:linux",
+    "package:linux": "electron-builder --linux deb AppImage --x64 --publish never --config.directories.output=dist/linux",
+    "package:win": "electron-builder --win nsis --x64 --publish never --config.productName=NimboDesk --config.directories.output=dist/windows",
+    "package:mac": "electron-builder --mac dmg zip --universal --publish never --config.productName=NimboDesk --config.directories.output=dist/macos",
+    "package:mac:unsigned": "npm run package:mac -- --config.mac.identity=- --config.mac.notarize=false"
+  },
+  "dependencies": {
+    "electron-updater": "6.8.11"
   },
   "devDependencies": {
     "electron": "45.3.4",
@@ -26,11 +33,18 @@
   "build": {
     "appId": "local.dnsconsole.desktop",
     "artifactName": "nimbodesk_${version}_${arch}.${ext}",
+    "publish": { "provider": "github", "owner": "kelvinmattosdev", "repo": "cloudflare-desktop-manager", "releaseType": "release" },
     "files": ["src/**/*"],
     "linux": {
       "category": "Network", "icon": "src/icon.svg", "syncDesktopName": true,
       "desktop": { "entry": { "Name": "NimboDesk" } }
     },
-    "appImage": { "artifactName": "nimbodesk_${version}_amd64.AppImage" }
+    "appImage": { "artifactName": "nimbodesk_${version}_amd64.AppImage" },
+    "win": { "icon": "src/icon.png", "target": ["nsis"] },
+    "nsis": { "oneClick": false, "perMachine": false, "allowElevation": true },
+    "mac": {
+      "icon": "src/icon.png", "category": "public.app-category.utilities",
+      "target": ["dmg", "zip"], "hardenedRuntime": true, "notarize": true
+    }
   }
 }

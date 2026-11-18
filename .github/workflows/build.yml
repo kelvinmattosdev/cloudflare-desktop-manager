@@ -1,0 +1,82 @@
+name: Gerar instaladores
+
+on:
+  workflow_dispatch:
+    inputs:
+      sign_macos:
+        description: Assinar e notarizar o app macOS com as credenciais da Apple
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            system: linux
+          - os: windows-2025
+            system: windows
+          - os: macos-15
+            system: macos
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - if: matrix.system == 'linux'
+        run: npm run package:linux
+      - if: matrix.system == 'windows'
+        run: npm run package:win
+        env:
+          CSC_LINK: ${{ secrets.WINDOWS_CERTIFICATE_BASE64 }}
+          CSC_KEY_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+      - if: matrix.system == 'macos' && !inputs.sign_macos
+        run: npm run package:mac:unsigned
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - if: matrix.system == 'macos' && inputs.sign_macos
+        name: Gerar instalador macOS assinado
+        shell: bash
+        env:
+          CSC_LINK: ${{ secrets.MAC_CERTIFICATE_BASE64 }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CERTIFICATE_PASSWORD }}
+          APPLE_API_KEY_BASE64: ${{ secrets.APPLE_API_KEY_BASE64 }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+        run: |
+          set -euo pipefail
+          : "${CSC_LINK:?Falta MAC_CERTIFICATE_BASE64}"
+          : "${CSC_KEY_PASSWORD:?Falta MAC_CERTIFICATE_PASSWORD}"
+          : "${APPLE_API_KEY_BASE64:?Falta APPLE_API_KEY_BASE64}"
+          : "${APPLE_API_KEY_ID:?Falta APPLE_API_KEY_ID}"
+          : "${APPLE_API_ISSUER:?Falta APPLE_API_ISSUER}"
+          umask 077
+          export APPLE_API_KEY="$RUNNER_TEMP/AuthKey_${APPLE_API_KEY_ID}.p8"
+          trap 'rm -f "$APPLE_API_KEY"' EXIT
+          printf '%s' "$APPLE_API_KEY_BASE64" | base64 --decode > "$APPLE_API_KEY"
+          npm run package:mac -- --config.forceCodeSigning=true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nimbodesk-${{ matrix.system }}
+          if-no-files-found: error
+          path: |
+            dist/${{ matrix.system }}/nimbodesk_*.deb
+            dist/${{ matrix.system }}/nimbodesk_*.AppImage
+            dist/${{ matrix.system }}/nimbodesk_*.exe
+            dist/${{ matrix.system }}/nimbodesk_*.dmg
+            dist/${{ matrix.system }}/nimbodesk_*.zip
+            dist/${{ matrix.system }}/nimbodesk_*.blockmap
+            dist/${{ matrix.system }}/latest.yml
+            dist/${{ matrix.system }}/latest-mac.yml

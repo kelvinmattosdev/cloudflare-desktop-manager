@@ -100,7 +100,8 @@ test('Debian installer validates metadata before requesting privilege and handle
   assert.equal(commands.length, 1);
 });
 
-test('AppImage update replaces the file in place, preserves any shortcut target and rejects bad formats', async t => {
+test('AppImage update replaces the file in place, preserves any shortcut target and rejects bad formats',
+  { skip: process.platform !== 'linux' }, async t => {
   const dir = await temp(t);
   const old = path.join(dir, 'Custom name.AppImage');
   const shortcut = path.join(dir, 'link.AppImage');
@@ -117,12 +118,34 @@ test('AppImage update replaces the file in place, preserves any shortcut target 
   assert.equal((await fs.stat(old)).mode & 0o777, 0o755);
 });
 
-test('updater enables only for the installed .deb and a launched AppImage', () => {
+test('updater detects packaged Windows, macOS and supported Linux installations', () => {
   const base = { packaged: true, platform: 'linux', arch: 'x64' };
   assert.equal(packageKind({ ...base, image: '/home/test/DNS Console.AppImage' }), 'image');
   assert.equal(packageKind({ ...base, execPath: '/opt/DNS Console/dns-console' }), 'deb');
   assert.equal(packageKind({ ...base, execPath: '/tmp/other/dns-console' }), null);
   assert.equal(packageKind({ ...base, packaged: false, image: '/tmp/DNS.AppImage' }), null);
+  assert.equal(packageKind({ ...base, platform: 'win32' }), 'win');
+  assert.equal(packageKind({ ...base, platform: 'darwin', arch: 'arm64' }), 'mac');
+});
+
+test('Windows and macOS require their installer assets and update manifests in the same release', async () => {
+  for (const [kind, suffix, manifest] of [['win', 'x64.exe', 'latest.yml'], ['mac', 'universal.zip', 'latest-mac.yml']]) {
+    const name = `nimbodesk_${release.version}_${suffix}`;
+    const prefix = `${repo}/releases/download/${tag}/`;
+    const binary = { ...metadata.assets[0], name, browser_download_url: `${prefix}${name}` };
+    const manifestEntry = { name: manifest, browser_download_url: `${prefix}${manifest}`, state: 'uploaded' };
+    assert.equal((await latestRelease(kind, async () => Response.json({ ...metadata,
+      assets: [binary] }))).asset, null);
+    assert.equal((await latestRelease(kind, async () => Response.json({ ...metadata,
+      assets: [binary, manifestEntry] }))).asset.name, name);
+  }
+});
+
+test('macOS without an eligible signature checks versions but does not install automatically', async () => {
+  const updater = createUpdater({ currentVersion: '1.0.0', kind: 'mac', manual: true,
+    lookup: async () => release, apply: () => assert.fail('should not install') });
+  assert.equal((await updater.check()).status, 'manual');
+  assert.equal((await updater.install(release.version)).status, 'manual');
 });
 
 test('startup and manual checks never install; clicking the exact expected version is required', async () => {

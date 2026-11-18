@@ -13,8 +13,9 @@ const repository = 'kelvinmattosdev/cloudflare-desktop-manager';
 const releases = `https://api.github.com/repos/${repository}/releases/latest`;
 const assets = `https://github.com/${repository}/releases/download/`;
 const redirectHosts = new Set(['release-assets.githubusercontent.com', 'objects.githubusercontent.com']);
-const maxBytes = 256 * 1024 * 1024;
-const extensions = { deb: '.deb', image: '.AppImage' };
+const suffix = { deb: 'amd64.deb', image: 'amd64.AppImage', win: 'x64.exe', mac: 'universal.zip' };
+const manifest = { win: 'latest.yml', mac: 'latest-mac.yml' };
+const releasePage = `https://github.com/${repository}/releases/latest`;
 
 function parseVersion(tag) {
   const clean = typeof tag === 'string' ? tag.replace(/^v/, '') : '';
@@ -31,7 +32,10 @@ function compareVersions(left, right) {
 }
 
 function packageKind({ packaged, platform, arch, image, execPath }) {
-  if (!packaged || platform !== 'linux' || arch !== 'x64') return null;
+  if (!packaged) return null;
+  if (platform === 'win32' && arch === 'x64') return 'win';
+  if (platform === 'darwin' && ['x64', 'arm64'].includes(arch)) return 'mac';
+  if (platform !== 'linux' || arch !== 'x64') return null;
   if (image && path.isAbsolute(image)) return 'image';
   if (execPath === '/opt/DNS Console/dns-console') return 'deb';
   return null;
@@ -59,12 +63,16 @@ async function latestRelease(kind, fetcher = fetch) {
     throw new Error('O GitHub não retornou uma versão estável válida.');
   }
   const version = parseVersion(release.tag_name);
-  const name = `nimbodesk_${version}_amd64${extensions[kind]}`;
+  const name = `nimbodesk_${version}_${suffix[kind]}`;
   const url = `${assets}${release.tag_name}/${name}`;
-  const entry = Array.isArray(release.assets) ? release.assets.find(file => file?.name === name) : null;
+  const entries = Array.isArray(release.assets) ? release.assets : [];
+  const entry = entries.find(file => file?.name === name);
+  const hasManifest = !manifest[kind] || entries.some(file => file?.state === 'uploaded' &&
+    file.name === manifest[kind] && file.browser_download_url === `${assets}${release.tag_name}/${manifest[kind]}`);
   const sha256 = typeof entry?.digest === 'string' ? entry.digest.match(/^sha256:([a-f0-9]{64})$/i)?.[1].toLowerCase() : null;
   const size = entry?.size;
-  const asset = entry?.state === 'uploaded' && entry.browser_download_url === url &&
+  const maxBytes = (kind === 'mac' ? 512 : 256) * 1024 * 1024;
+  const asset = hasManifest && entry?.state === 'uploaded' && entry.browser_download_url === url &&
     /^[0-9a-f]{64}$/.test(sha256 || '') && Number.isSafeInteger(size) && size > 0 && size <= maxBytes ?
     { name, url, sha256, size } : null;
   return { version, asset };
@@ -167,7 +175,7 @@ async function applyRelease(release, kind, image, onProgress, onInstall) {
   } finally { await fs.rm(work, { recursive: true, force: true }).catch(() => {}); }
 }
 
-function createUpdater({ currentVersion, kind, image, emit, restart,
+function createUpdater({ currentVersion, kind, image, manual = false, emit, restart,
   lookup = latestRelease, apply = applyRelease }) {
   const current = parseVersion(currentVersion);
   let state = { status: kind ? 'idle' : 'disabled', current, seq: 0 };
@@ -177,9 +185,18 @@ function createUpdater({ currentVersion, kind, image, emit, restart,
     emit?.(state);
   };
   const busy = () => ['checking', 'downloading', 'installing', 'restarting'].includes(state.status);
+  function restartFailed() {
+    if (state.status !== 'restarting') return;
+    if (kind === 'win' || kind === 'mac') {
+      set('error', { message: 'O instalador não abriu. Cheque novamente ou baixe o arquivo na página de releases.' });
+    } else {
+      set('installed', { latest: state.latest, message: 'Atualização instalada. Feche e abra o NimboDesk para usar a nova versão.' });
+    }
+  }
   return {
     status: () => state,
     blocksQuit: () => state.status === 'installing',
+    restartFailed,
     async check() {
       if (!kind || busy()) return state;
       candidate = null;
@@ -188,6 +205,8 @@ function createUpdater({ currentVersion, kind, image, emit, restart,
         const release = await lookup(kind);
         if (!release) set('unpublished');
         else if (compareVersions(release.version, current) <= 0) set('current', { latest: release.version });
+        else if (manual) set('manual', { latest: release.version,
+          message: 'Nesta instalação do macOS, baixe a nova versão e mova o app para a pasta Aplicativos.' });
         else if (!release.asset) set('no-package', { latest: release.version });
         else { candidate = release; set('available', { latest: release.version, admin: kind === 'deb' }); }
       } catch (error) { set('error', { message: error.message }); }
@@ -212,10 +231,10 @@ function createUpdater({ currentVersion, kind, image, emit, restart,
       }
       set('restarting', { latest, admin });
       try { restart(imagePath); }
-      catch { set('installed', { latest, message: 'Atualização instalada. Feche e abra o NimboDesk para usar a nova versão.' }); }
+      catch { restartFailed(); }
       return state;
     }
   };
 }
 
-module.exports = { createUpdater, compareVersions, latestRelease, downloadAsset, installDeb, installImage, packageKind };
+module.exports = { createUpdater, compareVersions, latestRelease, downloadAsset, installDeb, installImage, packageKind, releasePage };

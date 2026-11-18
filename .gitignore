@@ -4,6 +4,9 @@ node_modules/
 /coverage/
 *.deb
 *.AppImage
+*.exe
+*.dmg
+nimbodesk_*.zip
 *.blockmap
 
 # Local configuration and credentials
@@ -19,6 +22,7 @@ cloudflare-token.enc*
 *.key
 *.p12
 *.pfx
+*.p8
 
 # Local caches, diagnostics and editor files
 .cache/

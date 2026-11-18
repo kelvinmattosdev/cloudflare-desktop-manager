@@ -398,11 +398,12 @@ $('delete-form').onsubmit = e => {
 };
 settings().catch(error => say('login-error', error.message));
 
-let updateSeq = -1, updateTarget;
+let updateSeq = -1, updateTarget, manualUpdate;
 function renderUpdate(info) {
   if (info.seq < updateSeq) return;
   updateSeq = info.seq;
   const available = info.status === 'available';
+  manualUpdate = info.status === 'manual';
   const working = ['downloading', 'installing', 'restarting'].includes(info.status);
   const label = $('update-label');
   const latest = info.latest ? `v${info.latest}` : '';
@@ -415,6 +416,7 @@ function renderUpdate(info) {
     error: 'Falha na checagem',
     current: `Atualizado ${current}`,
     available: '',
+    manual: current,
     'no-package': `Pacote ${latest} indisponível`,
     downloading: `Baixando ${latest} · ${info.percent}%`,
     installing: info.admin ? 'Instalando · confirme no sistema' : `Instalando ${latest}…`,
@@ -423,14 +425,15 @@ function renderUpdate(info) {
   };
   label.textContent = texts[info.status] || current;
   label.toggleAttribute('data-current', info.status === 'current');
-  label.title = info.status === 'disabled' ? 'Checagem disponível no .deb instalado ou no AppImage.' :
+  label.title = info.status === 'disabled' ? 'Checagem disponível em uma versão empacotada do NimboDesk.' :
     info.status === 'current' && info.current !== info.latest ? `Versão publicada: ${latest}. A sua é mais recente.` :
       `Versão em uso: ${current}`;
   $('check-update').disabled = working || ['checking', 'disabled', 'installed'].includes(info.status);
-  $('install-update').hidden = !available;
-  $('install-update').textContent = `Atualizar para ${latest}`;
-  $('install-update').title = info.admin ? 'A instalação do .deb pede autorização de administrador no Zorin.' :
-    'Baixar, substituir o AppImage e reabrir o aplicativo.';
+  $('install-update').hidden = !available && !manualUpdate;
+  $('install-update').textContent = manualUpdate ? `Baixar ${latest}` : `Atualizar para ${latest}`;
+  $('install-update').title = manualUpdate ? 'Abrir a página de releases no GitHub.' :
+    info.admin ? 'A instalação do .deb pede autorização de administrador.' :
+      'Baixar a nova versão e reabrir o aplicativo.';
   updateTarget = available ? info.latest : undefined;
   document.querySelector('.shell').inert = working;
   $('disconnect').inert = working;
@@ -439,4 +442,5 @@ function renderUpdate(info) {
 window.dns.onUpdate(renderUpdate);
 call('updateStatus').then(renderUpdate).catch(error => say('update-notice', error.message));
 $('check-update').onclick = () => call('checkUpdate').then(renderUpdate).catch(error => say('update-notice', error.message));
-$('install-update').onclick = () => call('installUpdate', updateTarget).then(renderUpdate).catch(error => say('update-notice', error.message));
+$('install-update').onclick = () => (manualUpdate ? call('openRelease') : call('installUpdate', updateTarget).then(renderUpdate))
+  .catch(error => say('update-notice', error.message));

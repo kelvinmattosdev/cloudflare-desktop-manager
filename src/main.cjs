@@ -3,7 +3,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { cloudflare, payload, id } = require('./api.cjs');
-const { createUpdater, packageKind } = require('./updater.cjs');
+const { createUpdater, packageKind, releasePage } = require('./updater.cjs');
+const { signedMacApp, nativeUpdater } = require('./native-update.cjs');
 const demo = require('./demo.cjs');
 
 const index = path.join(__dirname, 'index.html');
@@ -11,10 +12,13 @@ const indexUrl = pathToFileURL(index).href;
 const keyFile = () => path.join(app.getPath('userData'), 'cloudflare-token.enc');
 // The synchronous API reports its actual Linux backend, so we can reject plaintext fallback.
 const canStore = () => safeStorage.isEncryptionAvailable() &&
-  ['gnome_libsecret', 'kwallet', 'kwallet5', 'kwallet6'].includes(safeStorage.getSelectedStorageBackend());
+  (process.platform !== 'linux' ||
+    ['gnome_libsecret', 'kwallet', 'kwallet5', 'kwallet6'].includes(safeStorage.getSelectedStorageBackend()));
 let win, session, updater;
 let busy = false;
-app.disableHardwareAcceleration();
+if (process.platform === 'linux') app.disableHardwareAcceleration();
+else app.setName('NimboDesk');
+if (process.platform === 'win32') app.setAppUserModelId('local.dnsconsole.desktop');
 
 function clearKey() { fs.rmSync(keyFile(), { force: true }); }
 
@@ -58,6 +62,7 @@ const handlers = {
   updateStatus: () => updater.status(),
   checkUpdate: () => updater.check(),
   installUpdate: expected => updater.install(expected),
+  openRelease: () => shell.openExternal(releasePage),
   zones: async () => {
     const current = session;
     if (!current) throw new Error('Conecte-se à Cloudflare primeiro.');
@@ -80,15 +85,22 @@ async function scoped(zone, run) {
 if (!app.requestSingleInstanceLock()) app.quit();
 else {
   app.on('second-instance', () => { if (win?.isMinimized()) win.restore(); win?.focus(); });
-  app.whenReady().then(() => {
-    Menu.setApplicationMenu(null);
+  app.whenReady().then(async () => {
+    const menu = process.platform === 'darwin' ?
+      Menu.buildFromTemplate([{ role: 'appMenu' }, { role: 'editMenu' }, { role: 'windowMenu' }]) : null;
+    Menu.setApplicationMenu(menu);
+    const kind = packageKind({ packaged: app.isPackaged, platform: process.platform, arch: process.arch,
+      image: process.env.APPIMAGE, execPath: process.execPath });
+    const manual = kind === 'mac' && !await signedMacApp(process.execPath);
+    const native = !manual && (kind === 'mac' || kind === 'win') ?
+      nativeUpdater(require('electron-updater').autoUpdater, () => updater?.restartFailed()) : undefined;
     updater = createUpdater({
       currentVersion: require('../package.json').version,
-      kind: packageKind({ packaged: app.isPackaged, platform: process.platform, arch: process.arch,
-        image: process.env.APPIMAGE, execPath: process.execPath }),
+      kind, manual, apply: native,
       image: process.env.APPIMAGE,
       emit: state => { if (win && !win.isDestroyed()) win.webContents.send('dns:updateChanged', state); },
       restart: image => {
+        if (typeof image === 'function') return image();
         if (image) app.relaunch({ execPath: image, args: [] });
         else app.relaunch();
         app.quit();
@@ -96,7 +108,7 @@ else {
     });
     win = new BrowserWindow({
       title: 'NimboDesk', width: 1280, height: 850, minWidth: 780, minHeight: 590,
-      backgroundColor: '#ffffff', show: false, autoHideMenuBar: true, icon: path.join(__dirname, 'icon.svg'),
+      backgroundColor: '#ffffff', show: false, autoHideMenuBar: true, icon: path.join(__dirname, 'icon.png'),
       webPreferences: { preload: path.join(__dirname, 'preload.cjs'),
         sandbox: true, contextIsolation: true, nodeIntegration: false, devTools: !app.isPackaged }
     });
