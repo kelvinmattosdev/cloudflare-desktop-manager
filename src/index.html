@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+  <title>DNS Console</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="ui.js" defer></script>
+</head>
+<body>
+  <svg class="symbols" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18Z"/></symbol>
+    <symbol id="search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></symbol>
+    <symbol id="key" viewBox="0 0 24 24"><circle cx="8" cy="10" r="4"/><path d="m11 13 7 7 3-3-2-2-2 2"/></symbol>
+    <symbol id="server" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="7" rx="2"/><rect x="4" y="13" width="16" height="7" rx="2"/><path d="M8 7.5h.01M8 16.5h.01M13 7.5h3M13 16.5h3"/></symbol>
+    <symbol id="refresh" viewBox="0 0 24 24"><path d="M20 6v5h-5M4 18v-5h5M4.8 9a7.8 7.8 0 0 1 12.9-4L20 8M4 16l2.3 3A7.8 7.8 0 0 0 19.2 15"/></symbol>
+    <symbol id="plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="external" viewBox="0 0 24 24"><path d="M14 4h6v6m0-6-9 9m6 0v6H5V7h6"/></symbol>
+    <symbol id="chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+    <symbol id="cloud" viewBox="0 0 24 24"><path d="M7 18h11a4 4 0 0 0 .6-7.95 6 6 0 0 0-11.4-1A4.5 4.5 0 0 0 7 18Z"/></symbol>
+    <symbol id="lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 1 1 8 0v3m-4 5v2"/></symbol>
+    <symbol id="warning" viewBox="0 0 24 24"><path d="m12 3 10 18H2L12 3Zm0 6v4m0 4h.01"/></symbol>
+  </svg>
+  <header class="top">
+    <div class="brand"><img src="icon.svg" alt=""> DNS Console</div>
+    <div class="top-path"><span>Cloudflare</span><svg class="icon" aria-hidden="true"><use href="#chevron"/></svg><span>DNS</span></div>
+    <div class="update-tools" aria-label="Atualizações do aplicativo">
+      <span id="update-label" role="status"></span>
+      <button id="install-update" class="primary" type="button" hidden></button>
+      <button id="check-update" class="icon-button" type="button" aria-label="Checar atualizações" title="Checar atualizações" disabled><svg class="icon" aria-hidden="true"><use href="#refresh"/></svg></button>
+    </div>
+    <div class="top-actions">
+      <span id="status" class="connection"><i></i>Sem conexão</span>
+      <button id="disconnect" hidden>Desconectar</button>
+    </div>
+  </header>
+  <div id="update-notice" class="update-notice" role="alert" hidden></div>
+  <div class="shell">
+    <aside class="sidebar" aria-label="Domínios">
+      <div class="side-heading"><svg class="icon" aria-hidden="true"><use href="#globe"/></svg><h2>Domínios</h2><span id="zone-count" class="badge" hidden></span></div>
+      <div id="zone-controls" class="zone-controls" hidden>
+        <label class="search small"><svg class="icon" aria-hidden="true"><use href="#search"/></svg><input id="zone-filter" type="search" placeholder="Buscar domínio" aria-label="Buscar domínio"></label>
+        <button id="refresh-zones" class="icon-button" title="Atualizar domínios" aria-label="Atualizar domínios"><svg class="icon" aria-hidden="true"><use href="#refresh"/></svg></button>
+      </div>
+      <div id="zones" class="zone-list"><p class="side-note">Conecte sua conta para listar os domínios disponíveis.</p></div>
+      <div class="side-foot"><svg class="icon" aria-hidden="true"><use href="#lock"/></svg> Acesso limitado a DNS</div>
+    </aside>
+    <main id="main">
+      <div id="login">
+        <p class="breadcrumb">Cloudflare <span>/</span> Conexão</p>
+        <h1>Conectar à Cloudflare</h1>
+        <p class="lede">Gerencie os registros DNS de todos os domínios liberados no seu token.</p>
+        <div class="onboarding">
+          <section class="panel access" aria-labelledby="access-heading">
+            <div class="section-icon"><svg class="icon" aria-hidden="true"><use href="#key"/></svg></div>
+            <h2 id="access-heading">Acesso à conta</h2>
+            <form id="login-form">
+              <fieldset id="login-fields">
+                <label class="field">API Token da Cloudflare<input id="token" type="password" required placeholder="Cole o API Token aqui" autocomplete="off" spellcheck="false" maxlength="300"></label>
+                <label id="remember-field" class="check" hidden><input id="remember" type="checkbox"> Lembrar token no cofre do sistema</label>
+                <p id="storage-note" class="hint" hidden>Sem cofre disponível: o token fica apenas nesta sessão.</p>
+                <p id="login-error" class="form-error" role="alert" hidden></p>
+                <div class="actions login-actions">
+                  <button type="submit" class="primary">Conectar</button>
+                  <button type="button" id="try-demo">Abrir demonstração</button>
+                </div>
+                <div id="remembered" class="saved-options" hidden>
+                  <button id="resume" type="button" class="text-button">Usar token salvo</button>
+                  <button id="forget" type="button" class="text-button">Esquecer token</button>
+                </div>
+              </fieldset>
+            </form>
+          </section>
+          <section class="panel permissions" aria-labelledby="permissions-heading">
+            <h2 id="permissions-heading">Permissões do token</h2>
+            <p>Use um API Token, não a Global API Key. Escolha quais domínios o app poderá gerenciar.</p>
+            <dl><div><dt>Zona → Zona</dt><dd>Leitura</dd></div><div><dt>Zona → DNS</dt><dd>Edição</dd></div></dl>
+            <button id="token-link" class="text-button">Criar token na Cloudflare <svg class="icon" aria-hidden="true"><use href="#external"/></svg></button>
+          </section>
+        </div>
+      </div>
+      <div id="workspace" hidden>
+        <p class="breadcrumb"><span id="crumb-zone">Domínios</span> <span>/</span> DNS <span>/</span> Registros</p>
+        <div class="page-head"><div><h1>Registros DNS</h1><p id="zone-title" class="lede"></p></div><span id="zone-status" class="zone-status" hidden></span></div>
+        <div id="demo-banner" class="notice demo-banner" hidden>Demonstração: alterações são simuladas e não afetam a Cloudflare.</div>
+        <div id="notice" class="notice" role="status" hidden></div>
+        <section class="panel table-panel" aria-labelledby="records-heading">
+          <div class="table-intro">
+            <div><h2 id="records-heading">Gerenciar registros</h2><p>Consulte e altere os registros do domínio selecionado.</p></div>
+            <button id="add" class="primary"><svg class="icon" aria-hidden="true"><use href="#plus"/></svg>Adicionar registro</button>
+          </div>
+          <div class="toolbar">
+            <label class="search"><svg class="icon" aria-hidden="true"><use href="#search"/></svg><input id="record-filter" type="search" placeholder="Buscar por nome ou conteúdo" aria-label="Buscar registros"></label>
+            <select id="type-filter" aria-label="Filtrar por tipo"><option value="">Todos os tipos</option></select>
+            <button id="refresh" class="icon-button" title="Atualizar registros" aria-label="Atualizar registros"><svg class="icon" aria-hidden="true"><use href="#refresh"/></svg></button>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th scope="col">Tipo</th><th scope="col">Nome</th><th scope="col">Conteúdo</th><th scope="col">Proxy</th><th scope="col">TTL</th><th scope="col" class="right">Ações</th></tr></thead>
+              <tbody id="records"></tbody>
+            </table>
+          </div>
+          <div class="table-foot"><span id="record-count" aria-live="polite"></span><div id="pagination" hidden><button id="previous" aria-label="Página anterior">Anterior</button> <button id="next" aria-label="Próxima página">Próxima</button></div></div>
+        </section>
+        <section id="nameservers" class="panel name-servers" hidden>
+          <div class="section-icon"><svg class="icon" aria-hidden="true"><use href="#server"/></svg></div>
+          <div><h2>Servidores de nomes</h2><div id="ns-list"></div></div>
+        </section>
+      </div>
+    </main>
+  </div>
+  <dialog id="editor" aria-labelledby="editor-title">
+    <form id="editor-form">
+      <div class="dialog-head"><div><h2 id="editor-title"></h2><p id="editor-zone"></p></div><button class="close" type="button" aria-label="Fechar">×</button></div>
+      <fieldset id="editor-fields" class="dialog-body">
+        <div class="two-cols"><label class="field">Tipo<select id="record-type"></select></label><label class="field">Nome<input id="record-name" required maxlength="254" spellcheck="false"><small>Use @ para o domínio raiz.</small></label></div>
+        <label id="content-field" class="field"><span id="content-label">Conteúdo</span><textarea id="content" rows="2" spellcheck="false" maxlength="20000"></textarea><small id="content-hint" hidden></small></label>
+        <div id="structured" class="two-cols" hidden></div>
+        <div class="two-cols">
+          <label id="priority-field" class="field" hidden>Prioridade<input id="priority" type="number" min="0" max="65535"></label>
+          <label class="field">TTL<select id="ttl"><option value="1">Automático</option><option value="60">1 minuto</option><option value="300">5 minutos</option><option value="1800">30 minutos</option><option value="3600">1 hora</option><option value="86400">1 dia</option><option value="custom">Personalizado</option></select></label>
+          <label id="custom-ttl-field" class="field" hidden>TTL em segundos<input id="custom-ttl" type="number" min="30" max="86400" step="1"></label>
+        </div>
+        <label id="proxy-field" class="check proxy-field" hidden><input id="proxy" type="checkbox"><span><strong>Proxy da Cloudflare</strong><small>Com proxy ativo, o TTL é automático.</small></span></label>
+        <label class="field">Comentário (opcional)<input id="comment" maxlength="100"></label>
+        <p id="editor-error" class="form-error" role="alert" hidden></p>
+      </fieldset>
+      <div class="dialog-foot"><button type="button" class="cancel">Cancelar</button><button id="save" class="primary" type="submit">Salvar registro</button></div>
+    </form>
+  </dialog>
+  <dialog id="deletion" aria-labelledby="delete-title">
+    <form id="delete-form">
+      <div class="dialog-head"><div><h2 id="delete-title">Excluir registro DNS?</h2><p id="delete-zone"></p></div><button class="close" type="button" aria-label="Fechar">×</button></div>
+      <div class="dialog-body"><div id="delete-record" class="delete-record"></div><p>Excluir este registro pode interromper serviços que dependem dele. Essa ação não pode ser desfeita pelo app.</p><p id="delete-error" class="form-error" role="alert" hidden></p></div>
+      <div class="dialog-foot"><button type="button" class="cancel" autofocus>Cancelar</button><button id="confirm-delete" class="danger" type="submit">Excluir registro</button></div>
+    </form>
+  </dialog>
+</body>
+</html>

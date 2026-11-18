@@ -1,0 +1,29 @@
+# Dependencies and generated packages
+node_modules/
+/dist/
+/coverage/
+*.deb
+*.AppImage
+*.blockmap
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+.npmrc
+.netrc
+.git-credentials
+.secrets/
+cloudflare-token.enc*
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Local caches, diagnostics and editor files
+.cache/
+.vscode/
+.idea/
+*.log
+*.swp
+.DS_Store

@@ -1,0 +1,33 @@
+{
+  "name": "dns-console",
+  "productName": "DNS Console",
+  "desktopName": "dns-console.desktop",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Gerenciador desktop de registros DNS para Cloudflare",
+  "author": { "name": "Kelvin Mattos", "email": "125149013+kelvinmattosdev@users.noreply.github.com" },
+  "homepage": "https://github.com/kelvinmattosdev/dns-console",
+  "repository": { "type": "git", "url": "https://github.com/kelvinmattosdev/dns-console.git" },
+  "engines": { "node": ">=22" },
+  "main": "src/main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test test/*.test.cjs",
+    "test:desktop": "electron test/desktop.cjs",
+    "package": "electron-builder --linux deb AppImage --x64 --publish never"
+  },
+  "devDependencies": {
+    "electron": "45.3.4",
+    "electron-builder": "26.18.0"
+  },
+  "overrides": {
+    "minimatch@>=7 <11.0.1": "11.0.9"
+  },
+  "build": {
+    "appId": "local.dnsconsole.desktop",
+    "artifactName": "dns-console_${version}_${arch}.${ext}",
+    "files": ["src/**/*"],
+    "linux": { "category": "Network", "icon": "src/icon.svg", "syncDesktopName": true },
+    "appImage": { "artifactName": "dns-console_${version}_amd64.AppImage" }
+  }
+}
