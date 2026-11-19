@@ -54,10 +54,13 @@
     "linux": {
       "category": "Network",
       "icon": "src/icon.svg",
+      "executableName": "nimbodesk",
       "syncDesktopName": true,
       "desktop": {
         "entry": {
-          "Name": "NimboDesk"
+          "Name": "NimboDesk",
+          "GenericName": "Gerenciador de DNS",
+          "Keywords": "NimboDesk;DNS;DNS Console;Cloudflare;"
         }
       }
     },

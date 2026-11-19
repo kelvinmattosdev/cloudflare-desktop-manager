@@ -65,7 +65,9 @@ chmod +x nimbodesk_1.0.0_amd64.AppImage
 ./nimbodesk_1.0.0_amd64.AppImage
 ```
 
-Use o nome do arquivo que você baixou se for outra versão. Se você instalou a prévia chamada DNS Console, instale o NimboDesk uma vez para passar a receber atualizações pelo endereço novo. No Linux, `dns-console` continua sendo o identificador interno do pacote; no menu, o nome é NimboDesk.
+Use o nome do arquivo que você baixou se for outra versão. Se você instalou a prévia chamada DNS Console, instale o NimboDesk uma vez para passar a receber atualizações pelo endereço novo. No Linux, `dns-console` continua sendo o identificador interno do pacote.
+
+A partir da v1.0.1, na instalação pelo `.deb`, rode `nimbodesk` para abrir o app pelo terminal. No menu, busque por NimboDesk, DNS ou DNS Console. O resultado tem sempre o nome NimboDesk.
 
 ## Conectar à Cloudflare
 

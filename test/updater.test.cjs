@@ -121,7 +121,9 @@ test('AppImage update replaces the file in place, preserves any shortcut target 
 test('updater detects packaged Windows, macOS and supported Linux installations', () => {
   const base = { packaged: true, platform: 'linux', arch: 'x64' };
   assert.equal(packageKind({ ...base, image: '/home/test/DNS Console.AppImage' }), 'image');
+  assert.equal(packageKind({ ...base, execPath: '/opt/DNS Console/nimbodesk' }), 'deb');
   assert.equal(packageKind({ ...base, execPath: '/opt/DNS Console/dns-console' }), 'deb');
+  assert.equal(packageKind({ ...base, execPath: '/tmp/other/nimbodesk' }), null);
   assert.equal(packageKind({ ...base, execPath: '/tmp/other/dns-console' }), null);
   assert.equal(packageKind({ ...base, packaged: false, image: '/tmp/DNS.AppImage' }), null);
   assert.equal(packageKind({ ...base, platform: 'win32' }), 'win');

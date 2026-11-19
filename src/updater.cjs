@@ -37,7 +37,7 @@ function packageKind({ packaged, platform, arch, image, execPath }) {
   if (platform === 'darwin' && ['x64', 'arm64'].includes(arch)) return 'mac';
   if (platform !== 'linux' || arch !== 'x64') return null;
   if (image && path.isAbsolute(image)) return 'image';
-  if (execPath === '/opt/DNS Console/dns-console') return 'deb';
+  if (execPath === '/opt/DNS Console/nimbodesk' || execPath === '/opt/DNS Console/dns-console') return 'deb';
   return null;
 }
 
