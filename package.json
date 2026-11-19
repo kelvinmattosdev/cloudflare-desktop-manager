@@ -53,7 +53,7 @@
     ],
     "linux": {
       "category": "Network",
-      "icon": "src/icon.svg",
+      "icon": "src/nimbodesk-icon.svg",
       "executableName": "nimbodesk",
       "syncDesktopName": true,
       "desktop": {

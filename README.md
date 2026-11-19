@@ -1,10 +1,10 @@
 <p align="center">
-  <img src="src/icon.svg" width="104" height="104" alt="Nuvem azul do NimboDesk" />
+  <img src="src/nimbodesk-icon.svg" width="104" height="104" alt="Nuvem azul do NimboDesk" />
 </p>
 <h1 align="center">NimboDesk</h1>
 <p align="center">
   <strong>Gerencie o DNS da Cloudflare sem abrir o navegador.</strong><br />
-  App desktop independente, em português. Instaladores para Windows e Linux.
+  App desktop independente, em português. Windows e Linux, com pacote experimental para macOS.
 </p>
 <p align="center">
   <a href="https://github.com/kelvinmattosdev/cloudflare-desktop-manager/releases/latest"><img src="https://img.shields.io/badge/Baixar-vers%C3%A3o%20est%C3%A1vel-1256E1?style=for-the-badge" alt="Baixar a versão estável" /></a>
@@ -24,7 +24,7 @@
 
 Precisa trocar um IP, apontar um subdomínio ou conferir um TXT? Escolha o domínio na barra lateral, ache o registro e faça a alteração ali mesmo. O NimboDesk cuida dos registros DNS; é um projeto independente, sem vínculo com a Cloudflare.
 
-> **Disponibilidade:** a [v1.0.0](https://github.com/kelvinmattosdev/cloudflare-desktop-manager/releases/tag/v1.0.0) é a versão pública. A captura mostra a **v1.0.1 em teste no Linux**, com a nuvem azul, a engrenagem de Configurações e o tema escuro. Nessa revisão, o app também passa a mostrar as notas depois de atualizar.
+> A captura mostra a **v1.0.1**, com a nuvem azul, a engrenagem de Configurações e o tema escuro. Essa versão também passa a mostrar as notas depois de atualizar.
 
 | Área | O que dá para fazer |
 | --- | --- |
@@ -50,19 +50,19 @@ Abra a [página de releases](https://github.com/kelvinmattosdev/cloudflare-deskt
 | Windows 64 bits | `.exe` | Abra o instalador e procure NimboDesk no menu Iniciar. O pacote público não é assinado; o SmartScreen pode exibir um aviso. |
 | Zorin OS ou Ubuntu 64 bits | `.deb` | Abra pelo instalador gráfico ou use o comando abaixo. Depois, procure NimboDesk no menu de aplicativos. |
 | Linux 64 bits, sem instalar | `.AppImage` | Dê permissão de execução e abra o arquivo. Ele não cria atalho no menu. |
-| macOS, Intel e Apple Silicon | `.dmg` universal | O build está configurado, mas ainda precisa rodar em um Mac. A instalação e a atualização no macOS não foram testadas. Não há `.dmg` na release pública. |
+| macOS, Intel e Apple Silicon | `.dmg` universal | Pacote experimental, sem assinatura Developer ID nem notarização. Abra o `.dmg` e arraste o NimboDesk para Aplicativos. O macOS pode bloquear a abertura; instalação e uso ainda não foram testados. |
 
 Para instalar o `.deb` pelo terminal, entre na pasta onde salvou o arquivo. O `./` indica que é um arquivo local, e não um nome para o `apt` procurar nos repositórios:
 
 ```sh
-sudo apt install ./nimbodesk_1.0.0_amd64.deb
+sudo apt install ./nimbodesk_1.0.1_amd64.deb
 ```
 
 Para o AppImage:
 
 ```sh
-chmod +x nimbodesk_1.0.0_amd64.AppImage
-./nimbodesk_1.0.0_amd64.AppImage
+chmod +x nimbodesk_1.0.1_amd64.AppImage
+./nimbodesk_1.0.1_amd64.AppImage
 ```
 
 Use o nome do arquivo que você baixou se for outra versão. Se você instalou a prévia chamada DNS Console, instale o NimboDesk uma vez para passar a receber atualizações pelo endereço novo. No Linux, `dns-console` continua sendo o identificador interno do pacote.
@@ -180,7 +180,7 @@ Os comandos geram arquivos em `dist/`, sem publicar nada. O workflow [Gerar inst
 
 1. Atualize a versão, por exemplo com `npm version patch --no-git-tag-version`. Registre as mudanças no [changelog](CHANGELOG.md).
 2. Rode os testes e gere os arquivos da versão. Não misture instaladores e manifestos de builds diferentes.
-3. Crie a tag `vX.Y.Z` no commit da versão. Publique como release estável e mais recente, sem renomear os instaladores. Inclua `latest.yml` e o `.blockmap` do Windows com o `.exe`. Para macOS, inclua o `.zip` universal e `latest-mac.yml` com o `.dmg`.
+3. Crie a tag `vX.Y.Z` no commit da versão. Publique como release estável e mais recente, sem renomear os instaladores. Inclua `latest.yml` e o `.blockmap` do Windows com o `.exe`. Quando o pacote macOS estiver assinado e apto a atualizar pelo app, inclua também o `.zip` universal e `latest-mac.yml` com o `.dmg`.
 4. Confira os anexos e seus SHA-256 no `GET /releases/latest`. Registre a data no changelog.
 
 No Windows, a assinatura é opcional para o build. No workflow, use os segredos `WINDOWS_CERTIFICATE_BASE64` e `WINDOWS_CERTIFICATE_PASSWORD` para assinar.
@@ -194,7 +194,7 @@ Para distribuir no macOS, use um certificado Developer ID Application e notarize
 - O app não configura CDN, regras de segurança, DNSSEC ou redirecionamentos da Cloudflare.
 - Alguns tipos avançados de registro usam os campos estruturados da API. Para mudar o tipo de um registro, a interface não oferece conversão no lugar.
 - A API da Cloudflare limita a listagem de zonas a 500 contas por consulta.
-- O macOS ainda não foi validado. A revisão v1.0.1 está em teste no Linux; o instalador público de Windows continua na v1.0.0.
+- O macOS ainda não foi validado. O pacote experimental abre a página de releases quando encontra uma versão nova, sem instalar a atualização automaticamente.
 
 ## Documentação
 

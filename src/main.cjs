@@ -152,7 +152,7 @@ else {
     win.webContents.session.setPermissionCheckHandler(() => false);
     for (const [name, handler] of Object.entries(handlers)) {
       ipcMain.handle(`dns:${name}`, async (event, ...args) => {
-        if (event.sender !== win.webContents || event.senderFrame?.url !== indexUrl ||
+        if (win.isDestroyed() || event.sender !== win.webContents || event.senderFrame?.url !== indexUrl ||
             event.senderFrame?.parent) return { error: 'Origem não permitida.' };
         try { return { value: await handler(...args) }; }
         catch (e) { return { error: e instanceof Error && !e.code ? e.message : 'Não foi possível concluir a operação local.' }; }

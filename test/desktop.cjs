@@ -57,7 +57,7 @@ app.whenReady().then(async () => {
   const run = js => contents.executeJavaScript(js);
   async function wait(condition) {
     for (let i = 0; i < 100; i++) {
-      if (await run(`Boolean(${condition})`)) return;
+      if (await run(`Promise.resolve(${condition}).then(Boolean)`)) return;
       await new Promise(resolve => setTimeout(resolve, 40));
     }
     throw new Error(`Condição não atingida: ${condition}\n${errors.join('\n')}`);
@@ -75,7 +75,7 @@ app.whenReady().then(async () => {
   }
   await run('document.getElementById("close-whats-new").click()');
   await wait('!document.getElementById("whats-new").open');
-  assert.equal(await run('window.dns.updateNotes().then(result => result.value)'), null);
+  await wait('window.dns.updateNotes().then(result => result.value === null)');
   assert.equal(fs.existsSync(notesFile), false);
   await wait('!document.getElementById("theme").disabled && document.querySelector(".brand img").naturalWidth > 0');
   assert.equal(await run('document.getElementById("theme").value'), initialTheme);
