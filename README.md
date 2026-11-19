@@ -49,6 +49,8 @@ No Linux, o `.deb` pede autorização de administrador. O AppImage pode se atual
 
 Veja o [histórico de versões](CHANGELOG.md) para saber o que mudou em cada uma.
 
+Nas atualizações iniciadas pelo app a partir da v1.0.1, uma janela mostra o que mudou ao reabrir, incluindo as versões puladas e as correções de segurança. Sem conexão, ela usa as notas que vieram com o instalador.
+
 ## Rodar a partir do código
 
 Use Node.js 22 ou mais recente:

@@ -175,19 +175,26 @@ async function applyRelease(release, kind, image, onProgress, onInstall) {
   } finally { await fs.rm(work, { recursive: true, force: true }).catch(() => {}); }
 }
 
-function createUpdater({ currentVersion, kind, image, manual = false, emit, restart,
+function createUpdater({ currentVersion, kind, image, manual = false, emit, restart, stageNotes, discardNotes,
   lookup = latestRelease, apply = applyRelease }) {
   const current = parseVersion(currentVersion);
   let state = { status: kind ? 'idle' : 'disabled', current, seq: 0 };
   let candidate = null;
+  let stagedVersion;
   const set = (status, extra) => {
     state = { status, current, seq: state.seq + 1, ...extra };
     emit?.(state);
   };
   const busy = () => ['checking', 'downloading', 'installing', 'restarting'].includes(state.status);
+  const clearNotes = () => {
+    if (!stagedVersion) return;
+    try { discardNotes?.(current, stagedVersion); } catch { /* History does not block updates. */ }
+    stagedVersion = undefined;
+  };
   function restartFailed() {
     if (state.status !== 'restarting') return;
     if (kind === 'win' || kind === 'mac') {
+      clearNotes();
       set('error', { message: 'O instalador não abriu. Cheque novamente ou baixe o arquivo na página de releases.' });
     } else {
       set('installed', { latest: state.latest, message: 'Atualização instalada. Feche e abra o NimboDesk para usar a nova versão.' });
@@ -223,8 +230,12 @@ function createUpdater({ currentVersion, kind, image, manual = false, emit, rest
       try {
         imagePath = await apply(release, kind, image, percent => {
           if (percent !== state.percent) set('downloading', { latest, percent, admin });
-        }, () => set('installing', { latest, admin }));
+        }, () => {
+          try { stageNotes?.(current, latest); stagedVersion = latest; } catch { /* History does not block updates. */ }
+          set('installing', { latest, admin });
+        });
       } catch (error) {
+        clearNotes();
         candidate = release;
         set('available', { latest, admin, message: error.message });
         return state;
@@ -237,4 +248,4 @@ function createUpdater({ currentVersion, kind, image, manual = false, emit, rest
   };
 }
 
-module.exports = { createUpdater, compareVersions, latestRelease, downloadAsset, installDeb, installImage, packageKind, releasePage };
+module.exports = { createUpdater, parseVersion, compareVersions, latestRelease, downloadAsset, installDeb, installImage, packageKind, releasePage, repository };

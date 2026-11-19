@@ -472,3 +472,43 @@ call('updateStatus').then(renderUpdate).catch(error => say('update-notice', erro
 $('check-update').onclick = () => call('checkUpdate').then(renderUpdate).catch(error => say('update-notice', error.message));
 $('install-update').onclick = () => (manualUpdate ? call('openRelease') : call('installUpdate', updateTarget).then(renderUpdate))
   .catch(error => say('update-notice', error.message));
+
+const notesDialog = $('whats-new');
+function showUpdateNotes(history) {
+  if (!history || notesDialog.open) return;
+  const activeDialog = document.querySelector('dialog[open]');
+  if (activeDialog) {
+    activeDialog.addEventListener('close', () => showUpdateNotes(history), { once: true });
+    return;
+  }
+  $('release-range').textContent = `Da v${history.from} para a v${history.to}`;
+  $('release-offline').hidden = history.complete;
+  $('release-history').replaceChildren(...history.releases.map(version => {
+    const section = node('section', 'release-version');
+    section.append(node('h3', '', `v${version.version}`));
+    if (!version.notes.length) {
+      section.append(node('p', 'hint', 'Não há notas disponíveis para esta versão.'));
+      return section;
+    }
+    const list = node('ul', 'release-items');
+    list.setAttribute('role', 'list');
+    for (const note of version.notes) {
+      const item = node('li', 'release-item');
+      const symbol = node('span', '', note.icon);
+      symbol.setAttribute('aria-hidden', 'true');
+      const text = node('span');
+      if (note.security) text.append(node('span', 'release-label', 'Segurança'), ' ');
+      text.append(note.text);
+      item.append(symbol, text);
+      list.append(item);
+    }
+    section.append(list);
+    return section;
+  }));
+  notesDialog.showModal();
+}
+$('close-whats-new').onclick = () => notesDialog.close();
+notesDialog.addEventListener('close', () => {
+  void call('dismissUpdateNotes').catch(() => {});
+});
+call('updateNotes').then(showUpdateNotes).catch(() => {});

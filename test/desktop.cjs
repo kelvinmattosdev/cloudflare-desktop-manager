@@ -29,6 +29,19 @@ require.cache[updaterPath].exports = {
     }
   })
 };
+const releaseNotesPath = require.resolve('../src/release-notes.cjs');
+const releaseNotes = require(releaseNotesPath);
+const currentVersion = require('../package.json').version;
+const notesFile = path.join(profile, 'pending-update.json');
+releaseNotes.savePendingUpdate(notesFile, '0.9.0', currentVersion);
+require.cache[releaseNotesPath].exports = {
+  ...releaseNotes,
+  collectReleaseNotes: options => releaseNotes.collectReleaseNotes({ ...options, fetcher: async () => Response.json([
+    { tag_name: 'v0.9.1', prerelease: false, draft: false, body: '### Segurança\n- Verificação local reforçada.' },
+    { tag_name: 'v1.0.0', prerelease: false, draft: false, body: '### DNS\n- Novo filtro de registros.' },
+    { tag_name: `v${currentVersion}`, prerelease: false, draft: false, body: '### Interface\n- Melhorias de aparência.' }
+  ]) })
+};
 require('../src/main.cjs');
 
 const timeout = setTimeout(() => { console.error('O teste desktop excedeu 25 segundos.'); app.exit(1); }, 25_000);
@@ -52,6 +65,18 @@ app.whenReady().then(async () => {
   await wait('window.dns && !document.getElementById("login").hidden');
   assert.equal(await run('typeof require'), 'undefined');
   assert.equal(await run('document.title'), 'NimboDesk');
+  await wait('document.getElementById("whats-new").open && document.querySelectorAll(".release-version").length >= 3');
+  assert.match(await run('document.getElementById("release-range").textContent'), /^Da v0\.9\.0 para a v/);
+  assert.equal(await run('document.querySelector(".release-label").textContent'), 'Segurança');
+  assert.match(await run('document.getElementById("release-history").textContent'), /Verificação local reforçada/);
+  if (process.env.DNS_SMOKE_NOTES_SCREENSHOT) {
+    await run('new Promise(done => requestAnimationFrame(() => requestAnimationFrame(done)))');
+    fs.writeFileSync(process.env.DNS_SMOKE_NOTES_SCREENSHOT, (await contents.capturePage()).toPNG());
+  }
+  await run('document.getElementById("close-whats-new").click()');
+  await wait('!document.getElementById("whats-new").open');
+  assert.equal(await run('window.dns.updateNotes().then(result => result.value)'), null);
+  assert.equal(fs.existsSync(notesFile), false);
   await wait('!document.getElementById("theme").disabled && document.querySelector(".brand img").naturalWidth > 0');
   assert.equal(await run('document.getElementById("theme").value'), initialTheme);
   assert.equal(await run('document.querySelector(".top select") === null'), true);
@@ -85,6 +110,7 @@ app.whenReady().then(async () => {
   await wait('document.querySelector(".shell").inert');
   await wait('!document.querySelector(".shell").inert && !document.getElementById("update-notice").hidden');
   assert.match(await run('document.getElementById("update-notice").textContent'), /cancelada/);
+  assert.equal(fs.existsSync(notesFile), false);
   await run('document.getElementById("check-update").click()');
   await wait('document.getElementById("update-notice").hidden && !document.getElementById("install-update").hidden');
   await run('document.getElementById("try-demo").click()');
@@ -140,8 +166,9 @@ app.whenReady().then(async () => {
   contents.reload();
   await wait('!document.getElementById("theme").disabled && document.getElementById("theme").value === "dark"');
   assert.equal(await run('getComputedStyle(document.documentElement).colorScheme'), 'dark');
+  assert.equal(await run('document.getElementById("whats-new").open'), false);
   assert.deepEqual(errors, []);
-  console.log('Desktop: temas e persistência, atualização simulada, conexão demo, troca de domínio e CRUD passaram.');
+  console.log('Desktop: notas pós-atualização, temas e persistência, conexão demo, troca de domínio e CRUD passaram.');
   clearTimeout(timeout);
   app.quit();
 }).catch(error => { console.error(error); app.exit(1); });

@@ -115,6 +115,21 @@
       </div>
     </main>
   </div>
+  <dialog id="whats-new" class="release-dialog" aria-labelledby="release-title" aria-describedby="release-range">
+    <div class="dialog-head release-head">
+      <div class="release-celebration" aria-hidden="true">🎉</div>
+      <div>
+        <h2 id="release-title">O que mudou</h2>
+        <p>Fique feliz: tem novidade no NimboDesk!</p>
+        <p id="release-range"></p>
+      </div>
+    </div>
+    <div class="dialog-body release-body" role="region" aria-label="Histórico de mudanças" tabindex="0">
+      <p id="release-offline" class="hint" hidden>Não foi possível consultar todo o histórico no GitHub. Veja abaixo as notas disponíveis.</p>
+      <div id="release-history" class="release-history"></div>
+    </div>
+    <div class="dialog-foot"><button id="close-whats-new" class="primary" type="button" autofocus>Entendi</button></div>
+  </dialog>
   <dialog id="settings-dialog" class="settings-dialog" aria-labelledby="settings-title">
     <div class="dialog-head">
       <h2 id="settings-title">Configurações</h2>

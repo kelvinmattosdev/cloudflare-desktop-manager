@@ -6,18 +6,22 @@ const { cloudflare, payload, id } = require('./api.cjs');
 const { createUpdater, packageKind, releasePage } = require('./updater.cjs');
 const { signedMacApp, nativeUpdater } = require('./native-update.cjs');
 const { loadTheme, saveTheme } = require('./theme.cjs');
+const { savePendingUpdate, pendingUpdateFor, clearPendingUpdate, collectReleaseNotes } = require('./release-notes.cjs');
 const demo = require('./demo.cjs');
 
 const index = path.join(__dirname, 'index.html');
 const indexUrl = pathToFileURL(index).href;
 const keyFile = () => path.join(app.getPath('userData'), 'cloudflare-token.enc');
 const themeFile = () => path.join(app.getPath('userData'), 'ui-theme');
+const notesFile = () => path.join(app.getPath('userData'), 'pending-update.json');
+const currentVersion = require('../package.json').version;
 const canvasColor = () => nativeTheme.shouldUseDarkColors ? '#11151d' : '#ffffff';
 // The synchronous API reports its actual Linux backend, so we can reject plaintext fallback.
 const canStore = () => safeStorage.isEncryptionAvailable() &&
   (process.platform !== 'linux' ||
     ['gnome_libsecret', 'kwallet', 'kwallet5', 'kwallet6'].includes(safeStorage.getSelectedStorageBackend()));
 let win, session, updater;
+let updateTransition, notesRequest;
 let busy = false;
 if (process.platform === 'linux') app.disableHardwareAcceleration();
 else app.setName('NimboDesk');
@@ -71,6 +75,20 @@ const handlers = {
   checkUpdate: () => updater.check(),
   installUpdate: expected => updater.install(expected),
   openRelease: () => shell.openExternal(releasePage),
+  updateNotes: () => {
+    if (!updateTransition) return null;
+    if (!notesRequest) {
+      let markdown = '';
+      try { markdown = fs.readFileSync(path.join(__dirname, '../CHANGELOG.md'), 'utf8'); } catch { /* Use GitHub notes. */ }
+      notesRequest = collectReleaseNotes({ transition: updateTransition, markdown });
+    }
+    return notesRequest;
+  },
+  dismissUpdateNotes: () => {
+    if (!updateTransition) return;
+    clearPendingUpdate(notesFile(), updateTransition.from, updateTransition.to);
+    updateTransition = notesRequest = null;
+  },
   zones: async () => {
     const current = session;
     if (!current) throw new Error('Conecte-se à Cloudflare primeiro.');
@@ -94,6 +112,7 @@ if (!app.requestSingleInstanceLock()) app.quit();
 else {
   app.on('second-instance', () => { if (win?.isMinimized()) win.restore(); win?.focus(); });
   app.whenReady().then(async () => {
+    updateTransition = pendingUpdateFor(notesFile(), currentVersion);
     nativeTheme.themeSource = loadTheme(themeFile());
     nativeTheme.on('updated', () => {
       if (win && !win.isDestroyed()) win.setBackgroundColor(canvasColor());
@@ -107,9 +126,11 @@ else {
     const native = !manual && (kind === 'mac' || kind === 'win') ?
       nativeUpdater(require('electron-updater').autoUpdater, () => updater?.restartFailed()) : undefined;
     updater = createUpdater({
-      currentVersion: require('../package.json').version,
+      currentVersion,
       kind, manual, apply: native,
       image: process.env.APPIMAGE,
+      stageNotes: (from, to) => savePendingUpdate(notesFile(), from, to),
+      discardNotes: (from, to) => clearPendingUpdate(notesFile(), from, to),
       emit: state => { if (win && !win.isDestroyed()) win.webContents.send('dns:updateChanged', state); },
       restart: image => {
         if (typeof image === 'function') return image();

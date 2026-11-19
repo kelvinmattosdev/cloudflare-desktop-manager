@@ -48,7 +48,8 @@
       "releaseType": "release"
     },
     "files": [
-      "src/**/*"
+      "src/**/*",
+      "CHANGELOG.md"
     ],
     "linux": {
       "category": "Network",
