@@ -6,7 +6,7 @@ Precisa trocar um IP, apontar um subdomínio ou conferir um TXT? O NimboDesk é 
 
 Você pode adicionar, editar e excluir registros, ajustar o TTL e ligar ou desligar o proxy nos tipos que aceitam essa opção. O app pede confirmação antes de excluir. Por enquanto, o NimboDesk cuida só dos registros DNS. É um projeto independente, sem vínculo com a Cloudflare.
 
-No canto superior direito, escolha o tema **Sistema**, **Claro** ou **Escuro**. O app lembra sua escolha quando você fecha e abre de novo.
+Abra a engrenagem no canto superior direito e vá até **Aparência** para escolher o tema **Sistema**, **Claro** ou **Escuro**. O app lembra sua escolha quando você fecha e abre de novo.
 
 ## Instalar
 
@@ -47,6 +47,8 @@ Ao abrir, o app consulta a última versão estável no GitHub sem enviar o token
 
 No Linux, o `.deb` pede autorização de administrador. O AppImage pode se atualizar sem `sudo` se estiver em uma pasta onde você pode gravar. No Windows, o app usa o instalador `.exe`. No macOS, a atualização pelo app exige uma cópia assinada com Developer ID e instalada fora do `.dmg`; nas versões de teste sem essa assinatura, o botão abre a página de releases.
 
+Veja o [histórico de versões](CHANGELOG.md) para saber o que mudou em cada uma.
+
 ## Rodar a partir do código
 
 Use Node.js 22 ou mais recente:
@@ -71,6 +73,8 @@ O teste desktop precisa de um ambiente gráfico. Ele usa o modo demonstração e
 ### Preparar uma release
 
 Para subir a versão, use `npm version patch --no-git-tag-version` ou escolha `minor` ou `major`. Rode os testes e gere os instaladores. Os arquivos ficam em `dist/linux/`, `dist/windows/` e `dist/macos/`. Os comandos `package:*` não publicam nada.
+
+Anote cada mudança no [changelog](CHANGELOG.md) na seção da versão em preparação. Use esse texto como base para as notas da release e registre a data quando ela for publicada.
 
 O workflow [Gerar instaladores](.github/workflows/build.yml) roda manualmente no GitHub Actions e guarda os arquivos da compilação. Ele não cria a release. Sem certificado, o instalador Windows é gerado sem assinatura e pode receber um aviso do SmartScreen. Para assinar no workflow, configure `WINDOWS_CERTIFICATE_BASE64` e `WINDOWS_CERTIFICATE_PASSWORD`.
 

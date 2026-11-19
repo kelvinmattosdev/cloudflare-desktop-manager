@@ -54,15 +54,27 @@ app.whenReady().then(async () => {
   assert.equal(await run('document.title'), 'NimboDesk');
   await wait('!document.getElementById("theme").disabled && document.querySelector(".brand img").naturalWidth > 0');
   assert.equal(await run('document.getElementById("theme").value'), initialTheme);
+  assert.equal(await run('document.querySelector(".top select") === null'), true);
+  assert.equal(await run('document.getElementById("settings-dialog").open'), false);
   if (initialTheme === 'dark') {
     assert.equal(await run('getComputedStyle(document.documentElement).colorScheme'), 'dark');
   }
+  const openSettings = async () => {
+    await run(`document.getElementById('open-settings').focus(); document.getElementById('open-settings').click()`);
+    await wait('document.getElementById("settings-dialog").open && document.activeElement.id === "theme"');
+  };
+  const closeSettings = async () => {
+    await run(`document.getElementById('close-settings').click()`);
+    await wait('!document.getElementById("settings-dialog").open && document.activeElement.id === "open-settings"');
+  };
   const chooseTheme = async theme => {
+    await openSettings();
     await run(`document.getElementById('theme').value = ${JSON.stringify(theme)};
       document.getElementById('theme').dispatchEvent(new Event('change'));`);
     await wait(`window.matchMedia('(prefers-color-scheme: ${theme})').matches`);
     assert.equal(fs.readFileSync(themeFile, 'utf8').trim(), theme);
     assert.equal(await run('getComputedStyle(document.documentElement).colorScheme'), theme);
+    await closeSettings();
   };
   await chooseTheme('light');
   await wait('document.getElementById("update-label").textContent.startsWith("Atualizado v")');
@@ -91,6 +103,16 @@ app.whenReady().then(async () => {
   win.setContentSize(780, 650);
   await wait('window.innerWidth === 780');
   assert.equal(await run('document.querySelector(".top").scrollWidth <= window.innerWidth'), true);
+  await openSettings();
+  assert.equal(await run('getComputedStyle(document.getElementById("settings-dialog")).backgroundColor'), 'rgb(34, 43, 58)');
+  if (process.env.DNS_SMOKE_SETTINGS_SCREENSHOT) {
+    await run('new Promise(done => requestAnimationFrame(() => requestAnimationFrame(done)))');
+    fs.writeFileSync(process.env.DNS_SMOKE_SETTINGS_SCREENSHOT, (await contents.capturePage()).toPNG());
+  }
+  win.focus();
+  contents.sendInputEvent({ type: 'keyDown', keyCode: 'Escape' });
+  contents.sendInputEvent({ type: 'keyUp', keyCode: 'Escape' });
+  await wait('!document.getElementById("settings-dialog").open && document.activeElement.id === "open-settings"');
   await run(`document.getElementById('zone-filter').value = 'dev';
     document.getElementById('zone-filter').dispatchEvent(new Event('input'));
     document.querySelector('.zone-item').click();`);

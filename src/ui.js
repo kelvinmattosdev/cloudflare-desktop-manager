@@ -398,8 +398,17 @@ $('delete-form').onsubmit = e => {
 };
 settings().catch(error => say('login-error', error.message));
 
-const themePicker = $('theme');
+const settingsDialog = $('settings-dialog'), settingsButton = $('open-settings'), themePicker = $('theme');
 let themeSource;
+settingsButton.onclick = () => {
+  if (!settingsDialog.open) {
+    settingsDialog.showModal();
+    if (!themePicker.disabled) themePicker.focus();
+  }
+};
+$('close-settings').onclick = () => settingsDialog.close();
+settingsDialog.addEventListener('close', () => settingsButton.focus());
+
 call('themeStatus').then(value => {
   themeSource = themePicker.value = value;
   themePicker.disabled = false;
@@ -455,6 +464,7 @@ function renderUpdate(info) {
   updateTarget = available ? info.latest : undefined;
   document.querySelector('.shell').inert = working;
   $('disconnect').inert = working;
+  settingsButton.inert = working;
   say('update-notice', info.message || '');
 }
 window.dns.onUpdate(renderUpdate);

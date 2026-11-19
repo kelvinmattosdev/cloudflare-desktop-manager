@@ -102,14 +102,8 @@ fieldset { padding: 0; margin: 0; border: 0; min-width: 0; }
 .top-path { border-left: 1px solid var(--line); padding-left: 24px; display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
 .top-path .icon { width: 13px; height: 13px; }
 .top-actions { display: flex; align-items: center; gap: 13px; }
-.theme-picker { position: relative; display: inline-flex; align-items: center; flex: none; color: var(--muted); }
-.theme-picker select { min-height: 36px; padding-inline: 29px 6px; font-size: 12px; cursor: pointer; }
-.theme-picker .icon { position: absolute; left: 8px; width: 15px; height: 15px; pointer-events: none; }
-.theme-picker .moon { display: none; }
-@media (prefers-color-scheme: dark) {
-  .theme-picker .sun { display: none; }
-  .theme-picker .moon { display: block; }
-}
+.settings-button { flex: none; width: 36px; height: 36px; border-color: transparent; background: transparent; color: var(--muted); }
+.settings-button:hover { border-color: var(--line); }
 .update-tools { margin-left: auto; display: flex; align-items: center; gap: 7px; white-space: nowrap; }
 .update-tools #update-label { color: var(--muted); font-size: 12px; }
 .update-tools #update-label[data-current] { color: var(--positive); }
@@ -215,6 +209,11 @@ dialog::backdrop { background: var(--scrim); }
 .dialog-head p { color: var(--muted); margin-top: 3px; font-size: 13px; overflow-wrap: anywhere; }
 .dialog-head .close { border: 0; padding: 0; width: 30px; min-height: 30px; font-size: 22px; }
 .dialog-body { display: grid; gap: 12px; }
+.settings-dialog { width: min(400px, calc(100vw - 32px)); }
+.settings-dialog .dialog-head { align-items: center; }
+.settings-dialog h3 { margin: 0; font-size: 13px; color: var(--muted); font-weight: 650; }
+.settings-row { display: flex; gap: 12px; align-items: center; justify-content: space-between; }
+.settings-row select { min-width: 112px; cursor: pointer; }
 .dialog-foot { display: flex; justify-content: end; gap: 8px; border-top: 1px solid var(--line); background: var(--soft); }
 .two-cols { display: grid; grid-template-columns: repeat(2,minmax(0, 1fr)); gap: 10px; }
 .proxy-field { background: var(--soft); padding: 8px 10px; border-radius: var(--radius); }
