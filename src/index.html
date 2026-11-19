@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
   <title>NimboDesk</title>
   <link rel="stylesheet" href="style.css">
@@ -21,6 +22,8 @@
     <symbol id="cloud" viewBox="0 0 24 24"><path d="M7 18h11a4 4 0 0 0 .6-7.95 6 6 0 0 0-11.4-1A4.5 4.5 0 0 0 7 18Z"/></symbol>
     <symbol id="lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 1 1 8 0v3m-4 5v2"/></symbol>
     <symbol id="warning" viewBox="0 0 24 24"><path d="m12 3 10 18H2L12 3Zm0 6v4m0 4h.01"/></symbol>
+    <symbol id="sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l2 2m10 10 2 2M5 19l2-2M17 7l2-2"/></symbol>
+    <symbol id="moon" viewBox="0 0 24 24"><path d="M20.8 14a9 9 0 0 1-10.9-10.9A9 9 0 1 0 20.8 14Z"/></symbol>
   </svg>
   <header class="top">
     <div class="brand"><img src="icon.svg" alt=""> NimboDesk</div>
@@ -33,9 +36,19 @@
     <div class="top-actions">
       <span id="status" class="connection"><i></i>Sem conexão</span>
       <button id="disconnect" hidden>Desconectar</button>
+      <label class="theme-picker">
+        <svg class="icon sun" aria-hidden="true"><use href="#sun"/></svg>
+        <svg class="icon moon" aria-hidden="true"><use href="#moon"/></svg>
+        <select id="theme" aria-label="Tema da interface" title="Tema da interface" disabled>
+          <option value="system">Sistema</option>
+          <option value="light">Claro</option>
+          <option value="dark">Escuro</option>
+        </select>
+      </label>
     </div>
   </header>
   <div id="update-notice" class="update-notice" role="alert" hidden></div>
+  <div id="theme-notice" class="update-notice" role="alert" hidden></div>
   <div class="shell">
     <aside class="sidebar" aria-label="Domínios">
       <div class="side-heading"><svg class="icon" aria-hidden="true"><use href="#globe"/></svg><h2>Domínios</h2><span id="zone-count" class="badge" hidden></span></div>

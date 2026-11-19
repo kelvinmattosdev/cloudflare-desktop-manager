@@ -1,7 +1,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 const methods = ['settings', 'connect', 'resume', 'demo', 'disconnect', 'forget', 'help',
-  'zones', 'records', 'write', 'remove', 'updateStatus', 'checkUpdate', 'installUpdate', 'openRelease'];
+  'zones', 'records', 'write', 'remove', 'themeStatus', 'setTheme', 'updateStatus', 'checkUpdate', 'installUpdate', 'openRelease'];
 const api = Object.fromEntries(methods.map(name => [
   name, (...args) => ipcRenderer.invoke(`dns:${name}`, ...args)
 ]));

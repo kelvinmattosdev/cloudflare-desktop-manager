@@ -1,8 +1,12 @@
 # NimboDesk
 
+<img src="src/icon.svg" width="112" height="112" alt="Nuvem azul do NimboDesk">
+
 Precisa trocar um IP, apontar um subdomínio ou conferir um TXT? O NimboDesk é um app para Windows, macOS e Linux para mexer no DNS da Cloudflare sem abrir o painel no navegador. Escolha um domínio na barra lateral e use a busca ou o filtro por tipo para achar o registro.
 
 Você pode adicionar, editar e excluir registros, ajustar o TTL e ligar ou desligar o proxy nos tipos que aceitam essa opção. O app pede confirmação antes de excluir. Por enquanto, o NimboDesk cuida só dos registros DNS. É um projeto independente, sem vínculo com a Cloudflare.
+
+No canto superior direito, escolha o tema **Sistema**, **Claro** ou **Escuro**. O app lembra sua escolha quando você fecha e abre de novo.
 
 ## Instalar
 
@@ -20,12 +24,12 @@ O instalador para macOS ainda precisa ser gerado em um Mac ou runner macOS. Tant
 Para instalar o `.deb` pelo terminal, vá até a pasta onde salvou o arquivo:
 
 ```sh
-sudo apt install ./nimbodesk_1.0.0_amd64.deb
+sudo apt install ./nimbodesk_1.0.1_amd64.deb
 ```
 
 Depois, procure NimboDesk no menu de aplicativos.
 
-No AppImage, use `chmod +x nimbodesk_1.0.0_amd64.AppImage` para dar permissão de execução, se for preciso.
+No AppImage, use `chmod +x nimbodesk_1.0.1_amd64.AppImage` para dar permissão de execução, se for preciso.
 
 ## Conectar à Cloudflare
 

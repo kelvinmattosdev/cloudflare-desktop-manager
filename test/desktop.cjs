@@ -8,6 +8,9 @@ const { once } = require('node:events');
 const profile = fs.mkdtempSync(path.join(process.env.TMPDIR || os.tmpdir(), 'dns-console-test-'));
 app.setPath('userData', profile);
 app.setPath('sessionData', profile);
+const themeFile = path.join(profile, 'ui-theme');
+const initialTheme = process.env.DNS_SMOKE_START_THEME === 'dark' ? 'dark' : 'system';
+if (initialTheme !== 'system') fs.writeFileSync(themeFile, `${initialTheme}\n`);
 const updaterPath = require.resolve('../src/updater.cjs');
 const actualUpdater = require(updaterPath);
 let checks = 0;
@@ -49,6 +52,19 @@ app.whenReady().then(async () => {
   await wait('window.dns && !document.getElementById("login").hidden');
   assert.equal(await run('typeof require'), 'undefined');
   assert.equal(await run('document.title'), 'NimboDesk');
+  await wait('!document.getElementById("theme").disabled && document.querySelector(".brand img").naturalWidth > 0');
+  assert.equal(await run('document.getElementById("theme").value'), initialTheme);
+  if (initialTheme === 'dark') {
+    assert.equal(await run('getComputedStyle(document.documentElement).colorScheme'), 'dark');
+  }
+  const chooseTheme = async theme => {
+    await run(`document.getElementById('theme').value = ${JSON.stringify(theme)};
+      document.getElementById('theme').dispatchEvent(new Event('change'));`);
+    await wait(`window.matchMedia('(prefers-color-scheme: ${theme})').matches`);
+    assert.equal(fs.readFileSync(themeFile, 'utf8').trim(), theme);
+    assert.equal(await run('getComputedStyle(document.documentElement).colorScheme'), theme);
+  };
+  await chooseTheme('light');
   await wait('document.getElementById("update-label").textContent.startsWith("Atualizado v")');
   await run('document.getElementById("check-update").click()');
   await wait('!document.getElementById("install-update").hidden');
@@ -63,8 +79,18 @@ app.whenReady().then(async () => {
   await wait('document.querySelectorAll("#records .type-pill").length === 8');
   assert.equal(await run('document.querySelectorAll(".zone-item").length'), 3);
   if (process.env.DNS_SMOKE_SCREENSHOT) {
+    await run('new Promise(done => requestAnimationFrame(() => requestAnimationFrame(done)))');
     fs.writeFileSync(process.env.DNS_SMOKE_SCREENSHOT, (await contents.capturePage()).toPNG());
   }
+  await chooseTheme('dark');
+  if (process.env.DNS_SMOKE_DARK_SCREENSHOT) {
+    await run('new Promise(done => requestAnimationFrame(() => requestAnimationFrame(done)))');
+    await run('Promise.allSettled(document.getAnimations().map(animation => animation.finished))');
+    fs.writeFileSync(process.env.DNS_SMOKE_DARK_SCREENSHOT, (await contents.capturePage()).toPNG());
+  }
+  win.setContentSize(780, 650);
+  await wait('window.innerWidth === 780');
+  assert.equal(await run('document.querySelector(".top").scrollWidth <= window.innerWidth'), true);
   await run(`document.getElementById('zone-filter').value = 'dev';
     document.getElementById('zone-filter').dispatchEvent(new Event('input'));
     document.querySelector('.zone-item').click();`);
@@ -74,6 +100,7 @@ app.whenReady().then(async () => {
     document.getElementById('content').value = '::1';
     document.getElementById('save').click();`);
   await wait('document.getElementById("editor-error").textContent.includes("IPv4")');
+  assert.equal(await run('getComputedStyle(document.getElementById("editor")).backgroundColor'), 'rgb(34, 43, 58)');
   await run(`document.getElementById('content').value = '192.0.2.11'; document.getElementById('save').click();`);
   await wait('!document.getElementById("editor").open && document.querySelectorAll("#records .type-pill").length === 9');
   await run(`document.getElementById('record-filter').value = 'teste';
@@ -88,8 +115,11 @@ app.whenReady().then(async () => {
   await wait('!document.getElementById("deletion").open && document.getElementById("records").textContent.includes("Nenhum registro corresponde")');
   await run('document.getElementById("disconnect").click()');
   await wait('!document.getElementById("login").hidden');
+  contents.reload();
+  await wait('!document.getElementById("theme").disabled && document.getElementById("theme").value === "dark"');
+  assert.equal(await run('getComputedStyle(document.documentElement).colorScheme'), 'dark');
   assert.deepEqual(errors, []);
-  console.log('Desktop: checagem automática/manual e atualização simulada; conexão demo, troca de domínio e CRUD passaram.');
+  console.log('Desktop: temas e persistência, atualização simulada, conexão demo, troca de domínio e CRUD passaram.');
   clearTimeout(timeout);
   app.quit();
 }).catch(error => { console.error(error); app.exit(1); });

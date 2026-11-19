@@ -2,13 +2,21 @@
   "name": "dns-console",
   "productName": "DNS Console",
   "desktopName": "dns-console.desktop",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "NimboDesk: gerencie o DNS da Cloudflare no Windows, macOS e Linux.",
-  "author": { "name": "Kelvin Mattos", "email": "125149013+kelvinmattosdev@users.noreply.github.com" },
+  "author": {
+    "name": "Kelvin Mattos",
+    "email": "125149013+kelvinmattosdev@users.noreply.github.com"
+  },
   "homepage": "https://github.com/kelvinmattosdev/cloudflare-desktop-manager",
-  "repository": { "type": "git", "url": "https://github.com/kelvinmattosdev/cloudflare-desktop-manager.git" },
-  "engines": { "node": ">=22" },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kelvinmattosdev/cloudflare-desktop-manager.git"
+  },
+  "engines": {
+    "node": ">=22"
+  },
   "main": "src/main.cjs",
   "scripts": {
     "start": "electron .",
@@ -33,18 +41,48 @@
   "build": {
     "appId": "local.dnsconsole.desktop",
     "artifactName": "nimbodesk_${version}_${arch}.${ext}",
-    "publish": { "provider": "github", "owner": "kelvinmattosdev", "repo": "cloudflare-desktop-manager", "releaseType": "release" },
-    "files": ["src/**/*"],
-    "linux": {
-      "category": "Network", "icon": "src/icon.svg", "syncDesktopName": true,
-      "desktop": { "entry": { "Name": "NimboDesk" } }
+    "publish": {
+      "provider": "github",
+      "owner": "kelvinmattosdev",
+      "repo": "cloudflare-desktop-manager",
+      "releaseType": "release"
     },
-    "appImage": { "artifactName": "nimbodesk_${version}_amd64.AppImage" },
-    "win": { "icon": "src/icon.png", "target": ["nsis"] },
-    "nsis": { "oneClick": false, "perMachine": false, "allowElevation": true },
+    "files": [
+      "src/**/*"
+    ],
+    "linux": {
+      "category": "Network",
+      "icon": "src/icon.svg",
+      "syncDesktopName": true,
+      "desktop": {
+        "entry": {
+          "Name": "NimboDesk"
+        }
+      }
+    },
+    "appImage": {
+      "artifactName": "nimbodesk_${version}_amd64.AppImage"
+    },
+    "win": {
+      "icon": "src/icon.png",
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": true
+    },
     "mac": {
-      "icon": "src/icon.png", "category": "public.app-category.utilities",
-      "target": ["dmg", "zip"], "hardenedRuntime": true, "notarize": true
+      "icon": "src/icon.png",
+      "category": "public.app-category.utilities",
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "hardenedRuntime": true,
+      "notarize": true
     }
   }
 }

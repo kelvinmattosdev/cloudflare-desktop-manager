@@ -398,6 +398,24 @@ $('delete-form').onsubmit = e => {
 };
 settings().catch(error => say('login-error', error.message));
 
+const themePicker = $('theme');
+let themeSource;
+call('themeStatus').then(value => {
+  themeSource = themePicker.value = value;
+  themePicker.disabled = false;
+}).catch(error => say('theme-notice', error.message));
+
+themePicker.onchange = async () => {
+  const next = themePicker.value;
+  try {
+    themeSource = await call('setTheme', next);
+    say('theme-notice');
+  } catch (error) {
+    if (themePicker.value === next) themePicker.value = themeSource;
+    say('theme-notice', error.message);
+  }
+};
+
 let updateSeq = -1, updateTarget, manualUpdate;
 function renderUpdate(info) {
   if (info.seq < updateSeq) return;

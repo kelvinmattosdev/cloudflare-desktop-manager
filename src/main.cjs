@@ -1,15 +1,18 @@
-const { app, BrowserWindow, ipcMain, Menu, safeStorage, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu, nativeTheme, safeStorage, shell } = require('electron');
 const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { cloudflare, payload, id } = require('./api.cjs');
 const { createUpdater, packageKind, releasePage } = require('./updater.cjs');
 const { signedMacApp, nativeUpdater } = require('./native-update.cjs');
+const { loadTheme, saveTheme } = require('./theme.cjs');
 const demo = require('./demo.cjs');
 
 const index = path.join(__dirname, 'index.html');
 const indexUrl = pathToFileURL(index).href;
 const keyFile = () => path.join(app.getPath('userData'), 'cloudflare-token.enc');
+const themeFile = () => path.join(app.getPath('userData'), 'ui-theme');
+const canvasColor = () => nativeTheme.shouldUseDarkColors ? '#11151d' : '#ffffff';
 // The synchronous API reports its actual Linux backend, so we can reject plaintext fallback.
 const canStore = () => safeStorage.isEncryptionAvailable() &&
   (process.platform !== 'linux' ||
@@ -59,6 +62,11 @@ const handlers = {
   },
   forget: () => clearKey(),
   help: () => shell.openExternal('https://dash.cloudflare.com/profile/api-tokens/'),
+  themeStatus: () => nativeTheme.themeSource,
+  setTheme: value => {
+    nativeTheme.themeSource = saveTheme(themeFile(), value);
+    return nativeTheme.themeSource;
+  },
   updateStatus: () => updater.status(),
   checkUpdate: () => updater.check(),
   installUpdate: expected => updater.install(expected),
@@ -86,6 +94,10 @@ if (!app.requestSingleInstanceLock()) app.quit();
 else {
   app.on('second-instance', () => { if (win?.isMinimized()) win.restore(); win?.focus(); });
   app.whenReady().then(async () => {
+    nativeTheme.themeSource = loadTheme(themeFile());
+    nativeTheme.on('updated', () => {
+      if (win && !win.isDestroyed()) win.setBackgroundColor(canvasColor());
+    });
     const menu = process.platform === 'darwin' ?
       Menu.buildFromTemplate([{ role: 'appMenu' }, { role: 'editMenu' }, { role: 'windowMenu' }]) : null;
     Menu.setApplicationMenu(menu);
@@ -108,7 +120,7 @@ else {
     });
     win = new BrowserWindow({
       title: 'NimboDesk', width: 1280, height: 850, minWidth: 780, minHeight: 590,
-      backgroundColor: '#ffffff', show: false, autoHideMenuBar: true, icon: path.join(__dirname, 'icon.png'),
+      backgroundColor: canvasColor(), show: false, autoHideMenuBar: true, icon: path.join(__dirname, 'icon.png'),
       webPreferences: { preload: path.join(__dirname, 'preload.cjs'),
         sandbox: true, contextIsolation: true, nodeIntegration: false, devTools: !app.isPackaged }
     });
